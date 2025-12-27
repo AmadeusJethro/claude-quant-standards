@@ -1,21 +1,36 @@
 # Add this to your ~/.claude/CLAUDE.md
 
-## Coding Standards (Global)
-- Quant coding skill auto-loads for trading/backtest work
-- TDD required: failing test before implementation
+---
+
+## Active Code Enforcement (Global)
+
+This is enforced automatically on all coding work:
+
+### Always:
+- Search before writing - reuse > duplicate
+- Functions <50 lines, files <500 lines
+- Vectorize pandas/numpy - no Python loops over DataFrames
+- TDD: failing test first, then implement
+- Multi-pass: write, critique, improve
+- Commits require passing tests + types + lint
+
+### Stop (Refuse to Proceed):
+- Lookahead bias patterns (position without shift, label='left')
+- Failing tests/types on commit
+- Hardcoded secrets
+- Bare except clauses
+
+### Auto-Fix:
+- Add missing .shift(1) on clear signal->position patterns
+- Fix resample labels
+- Remove unused imports
+
+### Auto-Document:
+- Decisions to docs/DECISIONS.md
+- Experiments to docs/EXPERIMENTS.md
+- Session state to docs/STATE.md
+
+### Quant-Specific:
 - Decimal for money, never float
-- Shift signals by 1 before position calc (lookahead bias)
-- Document decisions in docs/DECISIONS.md with the "why"
-- Archive deprecated code to archive/, never delete
-- Explore - Plan - Code - Validate - Commit (never skip planning)
-
-## Auto-Scaffold (Do This Automatically)
-When starting work on any quant/trading project, silently check if these exist and create any that are missing:
-- docs/DECISIONS.md, docs/EXPERIMENTS.md, docs/STATE.md (with header templates)
-- src/domain/, src/infrastructure/, src/backtest/, src/strategies/
-- tests/ mirroring src structure
-- archive/ for deprecated code
-- data/raw/, data/processed/
-- reports/
-
-Do not ask permission. Do not announce it. Just create missing structure before starting the actual task.
+- Flag suspicious backtest results (Sharpe >2, impossible returns)
+- Required tests: lookahead, survivorship, costs, param sensitivity

@@ -1,89 +1,106 @@
 # claude-quant-standards
 
-A Claude Code skill for quantitative trading and backtesting workflows. Prevents common pitfalls like lookahead bias, enforces TDD, and maintains code quality standards.
+A Claude Code skill with **active enforcement** for quant trading workflows. Not just guidelines - it stops, warns, and auto-fixes.
 
 ## What it does
 
-- **Catches lookahead bias** - The #1 cause of false backtests. Enforces signal shifting before position calculation.
-- **Enforces TDD** - Write failing tests first. Required test patterns for strategies.
-- **Numerical precision** - Decimal for money, never float. Catches compounding errors.
-- **Flags suspicious results** - Sharpe > 2? Returns > 50% with < 10% drawdown? Gets flagged.
-- **Auto-scaffolds projects** - Creates standard directory structure silently.
-- **Documents decisions** - Maintains DECISIONS.md, EXPERIMENTS.md, STATE.md automatically.
+This skill actively enforces standards while you code:
+
+**STOPS you from:**
+- Lookahead bias (position without .shift(1), wrong resample labels)
+- Committing with failing tests or type errors
+- Hardcoded secrets
+- Bare except clauses
+- O(n^2) loops when O(n) is trivial
+
+**WARNS you about:**
+- Functions >50 lines
+- Float used for money (should be Decimal)
+- Suspicious backtest results (Sharpe >2, win rate >70%)
+- Missing type hints
+
+**AUTO-FIXES:**
+- Missing .shift(1) on signal->position patterns
+- Wrong resample labels (left->right)
+- Unused imports
+- Import ordering
+
+**AUTO-DOCUMENTS:**
+- Decisions -> docs/DECISIONS.md
+- Experiments -> docs/EXPERIMENTS.md
+- Session state -> docs/STATE.md
 
 ## Installation
 
-### Option 1: Copy the skill folder
-
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/claude-quant-standards.git
-
-# Copy to your Claude skills directory
-cp -r claude-quant-standards/skills/quant-coding-standards ~/.claude/skills/
+git clone https://github.com/AmadeusJethro/claude-quant-standards.git
+cp -r claude-quant-standards/skills/coding-standards ~/.claude/skills/
 ```
 
-### Option 2: Add to your CLAUDE.md
-
-Append the contents of `CLAUDE.md.append` to your `~/.claude/CLAUDE.md` file.
+Then append `CLAUDE.md.append` contents to your `~/.claude/CLAUDE.md`.
 
 ## Auto-activation
 
-The skill auto-activates when Claude detects:
-- Keywords: trading, backtest, strategy, signal, position, portfolio, returns, sharpe, drawdown
-- Directories: strategies/, backtest/, signals/, risk/
+Activates automatically on all coding work. No manual invocation needed.
 
-No manual invocation needed.
-
-## What it enforces
+## Core Rules
 
 ### Lookahead Bias Prevention
 
 ```python
-# WRONG - uses today's signal for today's position
-df['position'] = df['close'] > df['close'].rolling(20).mean()
+# STOPPED - position uses current signal
+df['position'] = df['signal']
 
-# CORRECT - shift signal by 1
-df['signal'] = df['close'] > df['close'].rolling(20).mean()
-df['position'] = df['signal'].shift(1).fillna(False).astype(int)
+# REQUIRED - shift by 1
+df['position'] = df['signal'].shift(1).fillna(0)
+
+# STOPPED - wrong resample
+df.resample('D', label='left')
+
+# REQUIRED - point-in-time correct
+df.resample('D', label='right')
 ```
 
-### Required Strategy Tests
+### Performance
 
-Every strategy should have:
-- `test_no_lookahead_bias` - signals only use data available at signal time
-- `test_survivorship_bias` - universe includes delisted securities
-- `test_transaction_costs_material` - costs meaningfully impact results
-- `test_parameter_stability` - +/-10% param change doesn't swing Sharpe > 0.5
+```python
+# STOPPED - Python loop over DataFrame
+for i in range(len(df)):
+    df.loc[i, 'result'] = df.loc[i, 'a'] * df.loc[i, 'b']
+
+# REQUIRED - Vectorized
+df['result'] = df['a'] * df['b']
+```
 
 ### Backtest Red Flags
 
-Results that get questioned:
-- Sharpe > 2.0
-- Returns > 50% with drawdown < 10%
-- Equity curve suspiciously smooth
-- High parameter sensitivity
+Results that get flagged:
+- Sharpe > 2.0 - "Suspicious - verify not overfit"
+- Returns > 50% with MaxDD < 10% - "Too good - check methodology"
+- Win rate > 70% - "Often indicates lookahead"
 
-### Project Structure
+### Required Strategy Tests
 
-```
-src/
-├── domain/           # Pure logic, NO I/O
-│   ├── signals/      # Stateless signal generation
-│   ├── risk/         # Position sizing, limits
-│   └── models/       # Dataclasses, types
-├── infrastructure/   # External interfaces
-├── backtest/         # Event-driven engine
-└── strategies/       # Strategy implementations
-```
+- `test_no_lookahead_bias`
+- `test_survivorship_bias`
+- `test_transaction_costs_material`
+- `test_parameter_stability`
 
 ## Workflow
 
 ```
-Explore → Plan → Code → Validate → Commit
+Explore -> Plan -> Code -> Test -> Review -> Commit
 ```
 
-Never skip Explore and Plan. Skipping causes patchwork code and tech debt.
+Skip Explore/Plan? Claude stops and makes you go back.
+
+## Clean Code Enforcement
+
+- Functions: max 50 lines
+- Files: max 500 lines
+- Nesting: max 3 levels
+- Parameters: max 4 per function
+- DRY: copying >3 lines = extract to function
 
 ## License
 
