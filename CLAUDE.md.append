@@ -1,36 +1,10 @@
-# Add this to your ~/.claude/CLAUDE.md
+# Add to your ~/.claude/CLAUDE.md
 
----
+## Quant Standards
 
-## Active Code Enforcement (Global)
-
-This is enforced automatically on all coding work:
-
-### Always:
-- Search before writing - reuse > duplicate
-- Functions <50 lines, files <500 lines
-- Vectorize pandas/numpy - no Python loops over DataFrames
-- TDD: failing test first, then implement
-- Multi-pass: write, critique, improve
-- Commits require passing tests + types + lint
-
-### Stop (Refuse to Proceed):
-- Lookahead bias patterns (position without shift, label='left')
-- Failing tests/types on commit
-- Hardcoded secrets
-- Bare except clauses
-
-### Auto-Fix:
-- Add missing .shift(1) on clear signal->position patterns
-- Fix resample labels
-- Remove unused imports
-
-### Auto-Document:
-- Decisions to docs/DECISIONS.md
-- Experiments to docs/EXPERIMENTS.md
-- Session state to docs/STATE.md
-
-### Quant-Specific:
-- Decimal for money, never float
-- Flag suspicious backtest results (Sharpe >2, impossible returns)
-- Required tests: lookahead, survivorship, costs, param sensitivity
+When working on trading/backtest code:
+- Shift signals by 1 before position calc (lookahead bias)
+- Use Decimal for money, never float
+- Flag suspicious results: Sharpe > 2, win rate > 65%
+- Required tests: lookahead, costs impact, param stability
+- Log experiments to docs/EXPERIMENTS.md
