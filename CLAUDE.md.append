@@ -1,0 +1,21 @@
+# Add this to your ~/.claude/CLAUDE.md
+
+## Coding Standards (Global)
+- Quant coding skill auto-loads for trading/backtest work
+- TDD required: failing test before implementation
+- Decimal for money, never float
+- Shift signals by 1 before position calc (lookahead bias)
+- Document decisions in docs/DECISIONS.md with the "why"
+- Archive deprecated code to archive/, never delete
+- Explore - Plan - Code - Validate - Commit (never skip planning)
+
+## Auto-Scaffold (Do This Automatically)
+When starting work on any quant/trading project, silently check if these exist and create any that are missing:
+- docs/DECISIONS.md, docs/EXPERIMENTS.md, docs/STATE.md (with header templates)
+- src/domain/, src/infrastructure/, src/backtest/, src/strategies/
+- tests/ mirroring src structure
+- archive/ for deprecated code
+- data/raw/, data/processed/
+- reports/
+
+Do not ask permission. Do not announce it. Just create missing structure before starting the actual task.
